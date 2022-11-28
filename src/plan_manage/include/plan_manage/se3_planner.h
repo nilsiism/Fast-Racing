@@ -143,6 +143,8 @@ public:
   ros::Time lastIniStamp;
   quadrotor_msgs::PolynomialTrajectory traj2msg(Trajectory traj);
   bool has_map_(){return has_map;};
+  void openData(std::string fileToOpen,
+                std::vector<MatrixXd>& hPolys);
   void plan(const Eigen::MatrixXd &iniState, const Eigen::MatrixXd &finState,std::vector<Eigen::Vector3d>* wp_list = NULL);
 private:
   bool has_map = false;

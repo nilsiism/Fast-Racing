@@ -11,6 +11,7 @@
 #include <limits>                         // std::numeric_limits
 #include <vector>                         // std::vector
 #include <unordered_map>                  // std::unordered_map
+#include "jps_collision/map_util.h"
 
 namespace JPS
 {
@@ -163,6 +164,8 @@ namespace JPS
        * @param verbose flag for printing debug info, optional, default as False
        */
       GraphSearch(const char* cMap, int xDim, int yDim, int zDim, double eps = 1, bool verbose = false);
+
+      void saveMap(const std::string filename) const;
 
       /**
        * @brief start 2D planning thread

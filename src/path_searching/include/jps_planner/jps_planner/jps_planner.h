@@ -54,6 +54,12 @@ class JPSPlanner
      * 1, 2 --- start or goal is not free.
      */
     bool has_map_(){return has_map;}
+
+    void saveMap(const std::string filename) {
+      // iterate through map
+      graph_search_->saveMap(filename);
+    }
+
     int status();
     ///Get the modified path
     vec_Vecf<Dim> getPath();
@@ -69,6 +75,9 @@ class JPSPlanner
     vec_Vecf<Dim> samplePath(const vec_Vecf<Dim> & path);
     ///discretize the path into grids
     void updateMap();
+
+    void printFrames(const Vecf<Dim> &start, const Vecf<Dim> &goal);
+
     ///Planning function
     bool plan(const Vecf<Dim> &start, const Vecf<Dim> &goal, decimal_t eps = 1, bool use_jps = true);
     ///Get the nodes in open set

@@ -29,9 +29,13 @@
       <rosparam file="$(find plan_manage)/misc/zhangjiajie_params.yaml" command="load" />
     
    
-      <param name="map/z_size" value="2.8" type="double"/>
-      <param name="map/x_size" value="70" type="double"/>
-      <param name="map/y_size" value="400" type="double"/>
+      <param name="map/z_size" value="13.6" type="double"/>
+      <param name="map/x_size" value="48.8" type="double"/>
+      <param name="map/y_size" value="375" type="double"/>
+      <param name="map/x_origin"     value="-27.61"   type="double"/>
+      <param name="map/y_origin"     value="-1.65001" type="double"/>
+      <param name="map/z_origin"     value="-2.47"    type="double"/>
+
       <param name="world_frame_id" value="/world_enu" type="string"/>
       <param name="use_esdf" value="false" type="bool"/>
       <param name="host_ip" type="string" value="$(arg host)" />

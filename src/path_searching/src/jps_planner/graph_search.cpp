@@ -76,6 +76,148 @@ inline double GraphSearch::getHeur(int x, int y, int z) const {
   return eps_ * std::sqrt((x - xGoal_) * (x - xGoal_) + (y - yGoal_) * (y - yGoal_) + (z - zGoal_) * (z - zGoal_));
 }
 
+void GraphSearch::saveMap(const std::string filename) const {
+
+  // Open the file for writing.
+  std::ofstream file (filename + ".ply");
+  if (!file.is_open()) {
+    std::cerr << "Unable to write file" << "\n";
+    return;
+  }
+
+  std::stringstream ss_nodes_corners;
+  std::stringstream ss_faces;
+  int nodes_corners_count = 0;
+  int faces_count  = 0;
+
+  float g_max = 0.f;
+  size_t counter(0);
+  std::cout << "START SAVING MESH" << std::endl;
+  int x_min = std::numeric_limits<int>::max();
+  int y_min = std::numeric_limits<int>::max();
+  int z_min = std::numeric_limits<int>::max();
+
+  for (int x = 0; x < int(xDim_); x++) {
+    for (int y = 0; y < yDim_; y++) {
+      for (int z = 0; z < zDim_; z++) {
+        counter++;
+        if (isOccupied(x, y, z)) {
+          // Create octant
+          const Eigen::Vector3i node_coord(x, y, z);
+          const int node_size = 1;
+
+          if (x < x_min) {
+            x_min = x;
+          }
+
+          if (y < y_min) {
+            y_min = y;
+          }
+
+          if (z < z_min) {
+            z_min = z;
+          }
+
+          Eigen::Vector3f node_corners[8];
+          node_corners[0] =  node_coord.cast<float>();
+          node_corners[1] = (node_coord + Eigen::Vector3i(node_size, 0, 0)).cast<float>();
+          node_corners[2] = (node_coord + Eigen::Vector3i(0, node_size, 0)).cast<float>();
+          node_corners[3] = (node_coord + Eigen::Vector3i(node_size, node_size, 0)).cast<float>();
+          node_corners[4] = (node_coord + Eigen::Vector3i(0, 0, node_size)).cast<float>();
+          node_corners[5] = (node_coord + Eigen::Vector3i(node_size, 0, node_size)).cast<float>();
+          node_corners[6] = (node_coord + Eigen::Vector3i(0, node_size, node_size)).cast<float>();
+          node_corners[7] = (node_coord + Eigen::Vector3i(node_size, node_size, node_size)).cast<float>();
+
+          for(int i = 0; i < 8; ++i) {
+            ss_nodes_corners << node_corners[i].x() << " "
+                             << node_corners[i].y() << " "
+                             << node_corners[i].z() << " "
+                             << 0.5f << " 0 0" << std::endl;
+          }
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
+                   << " "  << nodes_corners_count + 3 << " " << nodes_corners_count + 2 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 1 << " " << nodes_corners_count + 5
+                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 3 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 5 << " " << nodes_corners_count + 7
+                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 2
+                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
+                   << " "  << nodes_corners_count + 5 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 2 << " " << nodes_corners_count + 3
+                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 6 << std::endl;
+
+          nodes_corners_count += 8;
+          faces_count  += 6;
+        }
+      }
+    }
+  }
+  std::cout << "FINISHED SAVING MESH - " << counter << std::endl;
+
+  file << "ply" << std::endl;
+  file << "format ascii 1.0" << std::endl;
+  file << "comment octree structure" << std::endl;
+  file << "element vertex " << nodes_corners_count <<  std::endl;
+  file << "property float x" << std::endl;
+  file << "property float y" << std::endl;
+  file << "property float z" << std::endl;
+  file << "property uchar red"   << std::endl;
+  file << "property uchar green" << std::endl;
+  file << "property uchar blue"  << std::endl;
+  file << "element face " << faces_count << std::endl;
+  file << "property list uchar int vertex_index" << std::endl;
+  file << "end_header" << std::endl;
+  file << ss_nodes_corners.str();
+  file << ss_faces.str();
+
+  file.close();
+
+  std::cout << "x min = " << x_min << "/ " << xDim_ << std::endl;
+  std::cout << "y min = " << y_min << "/ " << yDim_ << std::endl;
+  std::cout << "z min = " << z_min << "/ " << zDim_ << std::endl;
+
+  // Open the file for writing.
+  std::ofstream point_cloud_file (filename + ".txt");
+  if (!point_cloud_file.is_open()) {
+    std::cerr << "Unable to write file" << "\n";
+    return;
+  }
+
+
+  std::stringstream ss_nodes_centres;;
+  std::cout << "START SAVING MAP" << std::endl;
+
+  for (int x = 0; x < xDim_; x++) {
+    for (int y = 0; y < yDim_; y++) {
+      for (int z = 0; z < zDim_; z++) {
+        if (isOccupied(x, y, z)) {
+          // Create octant
+          const Eigen::Vector3f node_centre = Eigen::Vector3f(x, y, z);
+
+          ss_nodes_centres << node_centre.x() << " "
+                           << node_centre.y() << " "
+                           << node_centre.z() << std::endl;
+        }
+      }
+    }
+  }
+  std::cout << "FINISHED SAVING MAP" << std::endl;
+
+  point_cloud_file << ss_nodes_centres.str();
+
+  point_cloud_file.close();
+
+  return;
+
+}
+
 bool GraphSearch::plan(int xStart, int yStart, int xGoal, int yGoal, bool useJps, int maxExpand)
 {
   use_2d_ = true;

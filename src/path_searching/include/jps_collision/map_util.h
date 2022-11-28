@@ -24,6 +24,7 @@
 #include <map>
 #include <nav_msgs/Path.h>
 using namespace Eigen;
+
 namespace JPS {
   ///The type of map data Tmap is defined as a 1D array
   using Tmap = std::vector<signed char>;
@@ -35,6 +36,111 @@ namespace JPS {
     public:
       ///Simple constructor
       MapUtil() {}
+
+      void saveMap(std::vector<Eigen::Vector3f> points, float resolution, std::string filename) {
+
+        // Open the file for writing.
+        std::ofstream file (filename);
+        if (!file.is_open()) {
+          std::cerr << "Unable to write file" << "\n";
+          return;
+        }
+
+        std::stringstream ss_nodes_corners;
+        std::stringstream ss_faces;
+        int nodes_corners_count = 0;
+        int faces_count  = 0;
+
+        float g_max = 0.f;
+        size_t counter(0);
+
+        float x_min = std::numeric_limits<float>::max();
+        float y_min = std::numeric_limits<float>::max();
+        float z_min = std::numeric_limits<float>::max();
+
+        for (const auto& point : points) {
+          counter++;
+
+          const float x = point.x();
+          const float y = point.y();
+          const float z = point.z();
+
+          // Create octant
+          const Eigen::Vector3f node_coord(x, y, z);
+          const float node_size = resolution;
+
+          if (x < x_min) {
+            x_min = x;
+          }
+
+          if (y < y_min) {
+            y_min = y;
+          }
+
+          if (z < z_min) {
+            z_min = z;
+          }
+
+          Eigen::Vector3f node_corners[8];
+          node_corners[0] = node_coord;
+          node_corners[1] = node_coord + Eigen::Vector3f(node_size, 0, 0);
+          node_corners[2] = node_coord + Eigen::Vector3f(0, node_size, 0);
+          node_corners[3] = node_coord + Eigen::Vector3f(node_size, node_size, 0);
+          node_corners[4] = node_coord + Eigen::Vector3f(0, 0, node_size);
+          node_corners[5] = node_coord + Eigen::Vector3f(node_size, 0, node_size);
+          node_corners[6] = node_coord + Eigen::Vector3f(0, node_size, node_size);
+          node_corners[7] = node_coord + Eigen::Vector3f(node_size, node_size, node_size);
+
+          for(int i = 0; i < 8; ++i) {
+            ss_nodes_corners << node_corners[i].x() << " "
+                             << node_corners[i].y() << " "
+                             << node_corners[i].z() << " "
+                             << 0.5f << " 0 0" << std::endl;
+          }
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
+                   << " "  << nodes_corners_count + 3 << " " << nodes_corners_count + 2 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 1 << " " << nodes_corners_count + 5
+                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 3 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 5 << " " << nodes_corners_count + 7
+                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 2
+                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
+                   << " "  << nodes_corners_count + 5 << " " << nodes_corners_count + 4 << std::endl;
+
+          ss_faces << "4 " << nodes_corners_count + 2 << " " << nodes_corners_count + 3
+                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 6 << std::endl;
+
+          nodes_corners_count += 8;
+          faces_count  += 6;
+        }
+        std::cout << "FINISHED SAVING MAP - " << counter << std::endl;
+
+        file << "ply" << std::endl;
+        file << "format ascii 1.0" << std::endl;
+        file << "comment octree structure" << std::endl;
+        file << "element vertex " << nodes_corners_count <<  std::endl;
+        file << "property float x" << std::endl;
+        file << "property float y" << std::endl;
+        file << "property float z" << std::endl;
+        file << "property uchar red"   << std::endl;
+        file << "property uchar green" << std::endl;
+        file << "property uchar blue"  << std::endl;
+        file << "element face " << faces_count << std::endl;
+        file << "property list uchar int vertex_index" << std::endl;
+        file << "end_header" << std::endl;
+        file << ss_nodes_corners.str();
+        file << ss_faces.str();
+
+        file.close();
+        return;
+      }
+
       ///Get map data
       Tmap getMap() { return map_; }
       //
@@ -46,30 +152,49 @@ namespace JPS {
       ///Get origin
       Vecf<Dim> getOrigin() { return origin_d_; }
       void setParam(ros::NodeHandle& nh){
-        /*
-           map_ = map;
-        dim_ = dim;
-        origin_d_ = ori;
-        res_ = res;
-        */
+       /*
+         map_ = map;
+         dim_ = dim;
+         origin_d_ = ori;
+         res_ = res;
+       */
        //we only use jps3d 
        if(Dim!=3){
          ROS_ERROR("SEARCH MUST BE 3D!");
        }
         nh.param("jps/resolution", res_, 0.1);
-        nh.param("map/z_size",map_size(2),2.0);
         nh.param("map/x_size",map_size(0),100.0);
         nh.param("map/y_size",map_size(1),100.0);
+        nh.param("map/z_size",map_size(2),2.0);
+
+        nh.param("map/x_origin", origin_d_[0], -map_size(0) / 2);
+        nh.param("map/y_origin", origin_d_[1], -map_size(1) / 2);
+        nh.param("map/z_origin", origin_d_[2], -map_size(2) / 2);
+
         nh.param("use_esdf",use_esdf,false);
         nh.param("world_frame_id",world_frame_id,std::string("/world_enu"));
 
-        origin_d_[0] = -map_size(0)/2;
-        origin_d_[1] = -10.0;
-        origin_d_[2] = 0;
-        dim_(0) = map_size(0)/res_;
-        dim_(1) = map_size(1)/res_;
-        dim_(2) = map_size(2)/res_;
-        int buffer_size = dim_(0)*dim_(1)*dim_(2);
+//        origin_d_[0] = 0;
+//        origin_d_[1] = 0;
+//        origin_d_[2] = 0;
+
+//        origin_d_[1] = -10.0;
+//        origin_d_[2] = 0;
+
+        std::cout << "==========" << std::endl;
+        std::cout << "map_size(0) = " << map_size(0) << std::endl;
+        std::cout << "map_size(1) = " << map_size(1) << std::endl;
+        std::cout << "map_size(2) = " << map_size(2) << std::endl;
+        std::cout << "----------" << std::endl;
+        std::cout << "origin_d_(0) = " << origin_d_(0) << std::endl;
+        std::cout << "origin_d_(1) = " << origin_d_(1) << std::endl;
+        std::cout << "origin_d_(2) = " << origin_d_(2) << std::endl;
+        std::cout << "----------" << std::endl;
+
+        dim_(0) = map_size(0) / res_;
+        dim_(1) = map_size(1) / res_;
+        dim_(2) = map_size(2) / res_;
+        int buffer_size = dim_(0) * dim_(1) * dim_(2);
         map_.resize(buffer_size,0);
         if(use_esdf){
           distance_buffer_ = std::vector<double>(buffer_size, 10000);
@@ -91,11 +216,46 @@ namespace JPS {
         if( (int)cloud.points.size() == 0 ) return;
         pcl::PointXYZ pt;
         ROS_INFO("cloud points size=%d\n",(int)cloud.points.size());
+        std::vector<Eigen::Vector3f> points;
+        std::vector<Eigen::Vector3f> voxel_coords;
+
+        float ptx_min = std::numeric_limits<float>::max();
+        float pty_min = std::numeric_limits<float>::max();
+        float ptz_min = std::numeric_limits<float>::max();
+
+        bool is_valid;
         for (int idx = 0; idx < (int)cloud.points.size(); idx++)
         {
           pt = cloud.points[idx];
-          setObs(Eigen::Vector3d(pt.x,pt.y,pt.z));
+          points.push_back(Eigen::Vector3f(pt.x,pt.y,pt.z));
+
+          Vecf<Dim> voxel_coord = setObs(Eigen::Vector3d(pt.x,pt.y,pt.z), is_valid);
+
+          if (pt.x < ptx_min) {
+            ptx_min = pt.x;
+          }
+          if (pt.y < pty_min) {
+            pty_min = pt.y;
+          }
+          if (pt.z < ptz_min) {
+            ptz_min = pt.z;
+          }
+          
+          if (is_valid ) {
+            voxel_coords.push_back(Eigen::Vector3f(voxel_coord(0), voxel_coord(1), voxel_coord(2)));
+          }
         }
+
+        std::cout << "min obstacle [m]     = " << ptx_min << ", " << pty_min << ", " << ptz_min << std::endl;
+        Vecf<Dim> min_coord = setObs(Eigen::Vector3d(ptx_min, pty_min, ptz_min), is_valid);
+        std::cout << "min obstacle [voxel] = " << min_coord(0) << ", " << min_coord(1) << ", " << min_coord(2) << std::endl;
+
+        Vecf<Dim> map_corner = intToFloat(Veci<Dim>(0, 0, 0));
+        std::cout << "map corner = " << map_corner(0) << ", " << map_corner(1) << ", " << map_corner(2) << std::endl;
+
+//        saveMap(points, res_, std::string("/home/nils/workspace_/projects_/supereight-2-srl/test/planner/forest-map-util.ply"));
+//        saveMap(voxel_coords, 1.f, std::string("/home/nils/workspace_/projects_/supereight-2-srl/test/planner/forest-map-util-voxel.ply"));
+
         has_map = true;
         ROS_WARN("Finish gridmap built");
         if(use_esdf){
@@ -106,7 +266,7 @@ namespace JPS {
           bulid_esdf = true;
         }
       }
-      void setObs(Eigen::Vector3d pt){
+      Vecf<Dim> setObs(Eigen::Vector3d pt, bool& valid){
         int expand_size = 0;
         //3
         double coord_x = pt[0];
@@ -121,18 +281,26 @@ namespace JPS {
       }
         */
         Veci<Dim> index3i = floatToInt(Vecf<Dim>(coord_x,coord_y,coord_z));
+        Vecf<Dim> pt_rec = Vecf<Dim>(index3i(0), index3i(1), index3i(2));
+        valid = false;
+
         if(isOutside(index3i))
-          return;
+          return pt_rec;
+
         for (int i=-expand_size;i<=expand_size;i++)
           for (int j=-expand_size;j<=expand_size;j++)
-            for (int k=-expand_size;k<=expand_size;k++)
-            {
+            for (int k=-expand_size;k<=expand_size;k++) {
                 Veci<Dim> temp_index;
                 temp_index(0) = index3i(0)+i;
                 temp_index(1) = index3i(1)+j;
                 temp_index(2) = index3i(2)+k;
-                if(isOutside(temp_index)) continue;
-                map_[getIndex(temp_index)] = val_occ;}
+                if(isOutside(temp_index)) {
+                  continue;
+                }
+                valid = true;
+                map_[getIndex(temp_index)] = val_occ;
+            }
+        return pt_rec;
       }
       int toAddress(int x, int y, int z){
         Vec3i pn;
@@ -334,10 +502,13 @@ namespace JPS {
       }
       ///Check if the given cell is free by coordinate
       bool isFree(const Veci<Dim> &pn) {
-        if (isOutside(pn))
+        if (isOutside(pn)) {
+          std::cout << "isOutside(pn)" << std::endl;
           return false;
-        else
+        }
+        else {
           return isFree(getIndex(pn));
+        }
       }
       ///Check if the given cell is occupied by coordinate
       bool isOccupied(const Veci<Dim> &pn) {
@@ -381,14 +552,23 @@ namespace JPS {
       ///Float position to discrete cell coordinate
       Veci<Dim> floatToInt(const Vecf<Dim> &pt) {
         Veci<Dim> pn;
-        for(int i = 0; i < Dim; i++)
-          pn(i) = std::round((pt(i) - origin_d_(i)) / res_ - 0.5);
+        for(int i = 0; i < Dim; i++) {
+          pn(i) = (pt(i) + (res_ / 10) - origin_d_(i)) / res_;
+        }
         return pn;
       }
       ///Discrete cell coordinate to float position
       Vecf<Dim> intToFloat(const Veci<Dim> &pn) {
         //return pn.template cast<decimal_t>() * res_ + origin_d_;
         return (pn.template cast<decimal_t>() + Vecf<Dim>::Constant(0.5)) * res_ + origin_d_;
+      }
+      ///Float position to discrete cell coordinate in float units
+      Vecf<Dim> floatToFloat(const Vecf<Dim> &pt) {
+        Vecf<Dim> pn;
+        for(int i = 0; i < Dim; i++) {
+          pn(i) = (pt(i) - origin_d_(i)) / res_;
+        }
+        return pn;
       }
 
       ///Raytrace from float point pt1 to pt2

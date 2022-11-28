@@ -330,6 +330,23 @@ void JPSPlanner<Dim>::updateMap() {
 }
 
 template <int Dim>
+void JPSPlanner<Dim>::printFrames(const Vecf<Dim> &start, const Vecf<Dim> &goal) {
+  const Vecf<Dim> start_f = map_util_->floatToFloat(start);
+  const Vecf<Dim> goal_f = map_util_->floatToFloat(goal);
+  std::cout << "start_f = (" << start_f(0) << ", " << start_f(1) << ", " << start_f(2) << ")" << std::endl;
+  std::cout << "goal_f  = (" <<  goal_f(0) << ", " <<  goal_f(1) << ", " <<  goal_f(2) << ")" << std::endl;
+
+  Veci<Dim> voxel_coord;
+  for (int i = 0; i < Dim; i++) {
+    voxel_coord(i) = 0;
+  }
+  const Vecf<Dim> point_W = map_util_->intToFloat(voxel_coord);
+  std::cout << "Voxel coord = " << voxel_coord(0) << ", " << voxel_coord(1) << ", " << voxel_coord(2) << std::endl;
+  std::cout << "Point World = " << point_W(0) << ", " << point_W(1) << ", " << point_W(2) << std::endl;
+
+}
+
+template <int Dim>
 bool JPSPlanner<Dim>::plan(const Vecf<Dim> &start, const Vecf<Dim> &goal, decimal_t eps, bool use_jps) {
   if(planner_verbose_){
     std::cout <<"Start: " << start.transpose() << std::endl;
@@ -362,7 +379,7 @@ bool JPSPlanner<Dim>::plan(const Vecf<Dim> &start, const Vecf<Dim> &goal, decima
   const Veci<Dim> goal_int = map_util_->floatToInt(goal);
   if (!map_util_->isFree(goal_int)) {
     if(planner_verbose_)
-      printf(ANSI_COLOR_RED "goal is not free!\n" ANSI_COLOR_RESET);
+      printf(ANSI_COLOR_RED "goal is not free!!!\n" ANSI_COLOR_RESET);
     status_ = 2;
     return false;
   }

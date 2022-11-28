@@ -1,6 +1,7 @@
 #include<plan_manage/se3_planner.h>
 #include<se3gcopter/se3gcopter_gpu.hpp>
 void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::MatrixXd &finState,vector<Eigen::Vector3d>* wp_list){
+    std::cout << "MavGlobalPlanner::plan()" << std::endl;
     if(!has_map||!jps_pathfinder.has_map_()) return;
     Vector3d zeroVec(0.0,0.0,0.0);
     Vector3d start_pt;
