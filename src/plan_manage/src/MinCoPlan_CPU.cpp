@@ -74,7 +74,7 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
 
     jps_pathfinder.printFrames(Vecf<3>(start_pt[0],start_pt[1],start_pt[2]),Vecf<3>(end_pt[0],end_pt[1],end_pt[2]));
 
-//    if(!wp_list){
+////    if(!wp_list){
 //      std::cout << "START PLANNING A*" << std::endl;
 //      auto start_plan = std::chrono::high_resolution_clock::now();
 //      jps_pathfinder.plan(Vecf<3>(start_pt[0],start_pt[1],start_pt[2]),Vecf<3>(end_pt[0],end_pt[1],end_pt[2]),1,false);
@@ -86,28 +86,28 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
 //
 //      std::cout << "END PLANNING A*" << std::endl;
 //      std::cout << "Duration A* planning = " << dur_plan.count() << " ms" << std::endl;
-//    }
-//    else{
-//      vec_Vec3f path_0;
-//      jps_pathfinder.plan(Vecf<3>(start_pt[0],start_pt[1],start_pt[2]),Vecf<3>((*wp_list)[0][0],(*wp_list)[0][1],(*wp_list)[0][2]),1,false);
-//      path_0 = jps_pathfinder.getSamplePath();
-//      for(int i = 0;i< wp_list->size()-1;i++){
-//        vec_Vec3f tmp_path;
-//        jps_pathfinder.plan(Vecf<3>((*wp_list)[i][0],(*wp_list)[i][1],(*wp_list)[i][2]),Vecf<3>((*wp_list)[i+1][0],(*wp_list)[i+1][1],(*wp_list)[i+1][2]),1,false);
-//        tmp_path = jps_pathfinder.getSamplePath();
-//        path_0.pop_back();
-//        path_0.insert(path_0.end(),tmp_path.begin(),tmp_path.end());
-//      }
-//      vec_Vec3f end_path;
-//      jps_pathfinder.plan(Vecf<3>((*wp_list)[wp_list->size()-1][0],(*wp_list)[wp_list->size()-1][1],(*wp_list)[wp_list->size()-1][2]),
-//      Vecf<3>(end_pt[0],end_pt[1],end_pt[2]),1,false);
-//      end_path = jps_pathfinder.getSamplePath();
-//      path_0.pop_back();
-//      path_0.insert(path_0.end(),end_path.begin(),end_path.end());
-//      path = path_0;
-//    }
+////    }
+////    else{
+////      vec_Vec3f path_0;
+////      jps_pathfinder.plan(Vecf<3>(start_pt[0],start_pt[1],start_pt[2]),Vecf<3>((*wp_list)[0][0],(*wp_list)[0][1],(*wp_list)[0][2]),1,false);
+////      path_0 = jps_pathfinder.getSamplePath();
+////      for(int i = 0;i< wp_list->size()-1;i++){
+////        vec_Vec3f tmp_path;
+////        jps_pathfinder.plan(Vecf<3>((*wp_list)[i][0],(*wp_list)[i][1],(*wp_list)[i][2]),Vecf<3>((*wp_list)[i+1][0],(*wp_list)[i+1][1],(*wp_list)[i+1][2]),1,false);
+////        tmp_path = jps_pathfinder.getSamplePath();
+////        path_0.pop_back();
+////        path_0.insert(path_0.end(),tmp_path.begin(),tmp_path.end());
+////      }
+////      vec_Vec3f end_path;
+////      jps_pathfinder.plan(Vecf<3>((*wp_list)[wp_list->size()-1][0],(*wp_list)[wp_list->size()-1][1],(*wp_list)[wp_list->size()-1][2]),
+////      Vecf<3>(end_pt[0],end_pt[1],end_pt[2]),1,false);
+////      end_path = jps_pathfinder.getSamplePath();
+////      path_0.pop_back();
+////      path_0.insert(path_0.end(),end_path.begin(),end_path.end());
+////      path = path_0;
+////    }
 //
-//    jps_pathfinder.saveMap(map_file);
+////    jps_pathfinder.saveMap(map_file);
 //
 //    std::cout << "START ELLIPSOID EXPANSION" << std::endl;
 //    auto start_poly = std::chrono::high_resolution_clock::now();
@@ -175,13 +175,22 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
 //    std::cout << "END ELLIPSOID EXPANSION" << std::endl;
 //    std::cout << "Duration polynomial computation = " << dur_poly.count() << " ms" << std::endl;
 //
+//    float floor_height = -0.15f;
+//    float ceiling_height = -1.35f + 4.f - 0.5f;
+//    float wall_left_pos = -16.f;
+//    float wall_right_pos = 16.f;
+//
 //    std::cout << "Number of polyhedra from map: " << decompPolys.size() << std::endl;
 //    for (size_t i = 0; i < decompPolys.size(); i++)
 //    {
-//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(0.0, 0.0, config.mapHeight),
+//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(0.0, 0.0, ceiling_height),
 //                                          Eigen::Vector3d(0.0, 0.0, 1.0)));
-//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(0.0, 0.0, 0.0),
+//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(0.0, 0.0, floor_height),
 //                                          Eigen::Vector3d(0.0, 0.0, -1.0)));
+//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(wall_left_pos, 0.0, 0.0),
+//                                        Eigen::Vector3d(-1.0, 0.0, 0.0)));
+//        decompPolys[i].add(Hyperplane3D(Eigen::Vector3d(wall_right_pos, 0.0, 0.0),
+//                                        Eigen::Vector3d(1.0, 0.0, 0.0)));
 //    }
 //    visualization.visualizePolyH(decompPolys);
 //    vector<MatrixXd> hPolys;
@@ -205,6 +214,8 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
 //    }
 //    std::cout<<"-------------------------------------------\n";
 
+
+
     std::cout << "LOAD HYPERPLANES" << std::endl;
     std::string fileToOpen = map_file + ".csv";
     vector<MatrixXd> hPolysRead;
@@ -214,9 +225,13 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
 
     float floor_height = -0.15f;
     float ceiling_height = -1.35f + 4.f - 0.5f;
+    float wall_left_pos = -16.f;
+    float wall_right_pos = 16.f;
 
     std::cout << "floor height   = " << floor_height << std::endl;
     std::cout << "ceiling height = " << ceiling_height << std::endl;
+    std::cout << "wall left pos  = " << wall_left_pos << std::endl;
+    std::cout << "wall right pos = " << wall_right_pos << std::endl;
 
     vec_E<Polyhedron3D> decompPolys;
     for (size_t i = 0; i < hPolysRead.size(); i++) {
@@ -232,6 +247,14 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
       Eigen::Vector3d ceiling_p = Eigen::Vector3d(0.0, 0.0, ceiling_height);
       Eigen::Vector3d ceiling_n = Eigen::Vector3d(0.0, 0.0, 1.0);
       poly.add(Hyperplane3D(ceiling_p, ceiling_n));
+
+      Eigen::Vector3d wall_left_p = Eigen::Vector3d(wall_left_pos, 0.0, 0.0);
+      Eigen::Vector3d wall_left_n = Eigen::Vector3d(-1.0, 0.0, 0.0);
+      poly.add(Hyperplane3D(wall_left_p, wall_left_n));
+      Eigen::Vector3d wall_right_p = Eigen::Vector3d(wall_right_pos, 0.0, 0.0);
+      Eigen::Vector3d wall_right_n = Eigen::Vector3d(1.0, 0.0, 0.0);
+      poly.add(Hyperplane3D(wall_right_p, wall_right_n));
+
       decompPolys.push_back(poly);
     }
     std::cout << "VISUALISE " << decompPolys.size() << " POLYHEDRA" << std::endl;
@@ -251,6 +274,7 @@ void MavGlobalPlanner::plan(const Eigen::MatrixXd &iniState, const Eigen::Matrix
         hPolys.push_back(current_poly);
     }
     ///----------
+
 
 
     auto start_traj = std::chrono::high_resolution_clock::now();
