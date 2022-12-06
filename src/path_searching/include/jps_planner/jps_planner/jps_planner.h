@@ -55,10 +55,15 @@ class JPSPlanner
      */
     bool has_map_(){return has_map;}
 
-    void saveMap(const std::string filename) {
-      // iterate through map
-      graph_search_->saveMap(filename);
+    void saveMap(const std::string filename, const std::shared_ptr<JPS::MapUtil<2>> map_util, const vec_Vecf<2>& obs)
+    {
     }
+
+    void saveMap(const std::string filename, const std::shared_ptr<JPS::MapUtil<3>> map_util, const vec_Vecf<3>& obs) {
+      // iterate through map
+      graph_search_->saveMap(filename, map_util, obs);
+    }
+
 
     int status();
     ///Get the modified path

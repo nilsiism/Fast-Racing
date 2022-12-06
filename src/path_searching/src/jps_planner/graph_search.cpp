@@ -76,143 +76,340 @@ inline double GraphSearch::getHeur(int x, int y, int z) const {
   return eps_ * std::sqrt((x - xGoal_) * (x - xGoal_) + (y - yGoal_) * (y - yGoal_) + (z - zGoal_) * (z - zGoal_));
 }
 
-void GraphSearch::saveMap(const std::string filename) const {
+void GraphSearch::saveMap(const std::string filename,
+                          const std::shared_ptr<JPS::MapUtil<3>> map_util,
+                          const vec_Vecf<3>& obs) const {
+
+//  std::cout << "START SAVING GRID MAP MESH" << std::endl;
+//
+//  // Open the file for writing.
+//  std::ofstream file_gm_v (filename + "-grid-map-mesh.ply");
+//  if (!file_gm_v.is_open()) {
+//    std::cerr << "Unable to write file" << "\n";
+//    return;
+//  }
+//
+//  std::stringstream ss_nodes_corners_gm_v;
+//  std::stringstream ss_faces_gm_v;
+//  int nodes_corners_count_gm_v = 0;
+//  int faces_count_gm_v  = 0;
+//
+//  int x_min = std::numeric_limits<int>::max();
+//  int y_min = std::numeric_limits<int>::max();
+//  int z_min = std::numeric_limits<int>::max();
+//
+//  size_t obs_gm_v_counter(0);
+//  for (int x = 0; x < int(xDim_); x++) {
+//    for (int y = 0; y < yDim_; y++) {
+//      for (int z = 0; z < zDim_; z++) {
+//        if (isOccupied(x, y, z)) {
+//          obs_gm_v_counter++;
+//          // Create octant
+//          const Eigen::Vector3i node_coord(x, y, z);
+//          const int node_size = 1;
+//
+//          if (x < x_min) {
+//            x_min = x;
+//          }
+//
+//          if (y < y_min) {
+//            y_min = y;
+//          }
+//
+//          if (z < z_min) {
+//            z_min = z;
+//          }
+//
+//          Eigen::Vector3f node_corners[8];
+//          node_corners[0] =  node_coord.cast<float>();
+//          node_corners[1] = (node_coord + Eigen::Vector3i(node_size, 0, 0)).cast<float>();
+//          node_corners[2] = (node_coord + Eigen::Vector3i(0, node_size, 0)).cast<float>();
+//          node_corners[3] = (node_coord + Eigen::Vector3i(node_size, node_size, 0)).cast<float>();
+//          node_corners[4] = (node_coord + Eigen::Vector3i(0, 0, node_size)).cast<float>();
+//          node_corners[5] = (node_coord + Eigen::Vector3i(node_size, 0, node_size)).cast<float>();
+//          node_corners[6] = (node_coord + Eigen::Vector3i(0, node_size, node_size)).cast<float>();
+//          node_corners[7] = (node_coord + Eigen::Vector3i(node_size, node_size, node_size)).cast<float>();
+//
+//          for(int i = 0; i < 8; ++i) {
+//            ss_nodes_corners_gm_v << node_corners[i].x() << " "
+//                             << node_corners[i].y() << " "
+//                             << node_corners[i].z() << " "
+//                             << 0.5f << " 0 0" << std::endl;
+//          }
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v     << " " << nodes_corners_count_gm_v + 1
+//                   << " "  << nodes_corners_count_gm_v + 3 << " " << nodes_corners_count_gm_v + 2 << std::endl;
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v + 1 << " " << nodes_corners_count_gm_v + 5
+//                   << " "  << nodes_corners_count_gm_v + 7 << " " << nodes_corners_count_gm_v + 3 << std::endl;
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v + 5 << " " << nodes_corners_count_gm_v + 7
+//                   << " "  << nodes_corners_count_gm_v + 6 << " " << nodes_corners_count_gm_v + 4 << std::endl;
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v     << " " << nodes_corners_count_gm_v + 2
+//                   << " "  << nodes_corners_count_gm_v + 6 << " " << nodes_corners_count_gm_v + 4 << std::endl;
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v     << " " << nodes_corners_count_gm_v + 1
+//                   << " "  << nodes_corners_count_gm_v + 5 << " " << nodes_corners_count_gm_v + 4 << std::endl;
+//
+//          ss_faces_gm_v << "4 " << nodes_corners_count_gm_v + 2 << " " << nodes_corners_count_gm_v + 3
+//                   << " "  << nodes_corners_count_gm_v + 7 << " " << nodes_corners_count_gm_v + 6 << std::endl;
+//
+//          nodes_corners_count_gm_v += 8;
+//          faces_count_gm_v  += 6;
+//        }
+//      }
+//    }
+//  }
+//
+//  file_gm_v << "ply" << std::endl;
+//  file_gm_v << "format ascii 1.0" << std::endl;
+//  file_gm_v << "comment octree structure" << std::endl;
+//  file_gm_v << "element vertex " << nodes_corners_count_gm_v <<  std::endl;
+//  file_gm_v << "property float x" << std::endl;
+//  file_gm_v << "property float y" << std::endl;
+//  file_gm_v << "property float z" << std::endl;
+//  file_gm_v << "property uchar red"   << std::endl;
+//  file_gm_v << "property uchar green" << std::endl;
+//  file_gm_v << "property uchar blue"  << std::endl;
+//  file_gm_v << "element face " << faces_count_gm_v << std::endl;
+//  file_gm_v << "property list uchar int vertex_index" << std::endl;
+//  file_gm_v << "end_header" << std::endl;
+//  file_gm_v << ss_nodes_corners_gm_v.str();
+//  file_gm_v << ss_faces_gm_v.str();
+//
+//  file_gm_v.close();
+//
+//  std::cout << "x min = " << x_min << "/ " << xDim_ << std::endl;
+//  std::cout << "y min = " << y_min << "/ " << yDim_ << std::endl;
+//  std::cout << "z min = " << z_min << "/ " << zDim_ << std::endl;
+//
+//  std::cout << "FINISHED SAVING GRID MAP MESH - VOXEL | obs_gm_v_counter = " << obs_gm_v_counter << std::endl;
+//
+//  /// ----------
+//
+//  std::cout << "START SAVING POINTCLOUD MESH - METER" << std::endl;
+//
+//  // Open the file for writing.
+//  std::ofstream file_pc_m (filename + "-pointcloud-mesh-meter.ply");
+//  if (!file_pc_m.is_open()) {
+//    std::cerr << "Unable to write file" << "\n";
+//    return;
+//  }
+//
+//  std::stringstream ss_nodes_corners_pc_m;
+//  std::stringstream ss_faces_pc_m;
+//  int nodes_corners_count_pc_m = 0;
+//  int faces_count_pc_m  = 0;
+//
+//  for (const auto ob : obs) {
+//    // Create octant
+//    const Eigen::Vector3f node_centre(ob.x(), ob.y(), ob.z());
+//    const float node_size = 0.1f;
+//
+//    Eigen::Vector3f node_corners[8];
+//    node_corners[0] = node_centre + Eigen::Vector3f(-node_size / 2, -node_size / 2, -node_size / 2);
+//    node_corners[1] = node_centre + Eigen::Vector3f( node_size / 2, -node_size / 2, -node_size / 2);
+//    node_corners[2] = node_centre + Eigen::Vector3f(-node_size / 2,  node_size / 2, -node_size / 2);
+//    node_corners[3] = node_centre + Eigen::Vector3f( node_size / 2,  node_size / 2, -node_size / 2);
+//    node_corners[4] = node_centre + Eigen::Vector3f(-node_size / 2, -node_size / 2,  node_size / 2);
+//    node_corners[5] = node_centre + Eigen::Vector3f( node_size / 2, -node_size / 2,  node_size / 2);
+//    node_corners[6] = node_centre + Eigen::Vector3f(-node_size / 2,  node_size / 2,  node_size / 2);
+//    node_corners[7] = node_centre + Eigen::Vector3f( node_size / 2,  node_size / 2,  node_size / 2);
+//
+//    for(int i = 0; i < 8; ++i) {
+//      ss_nodes_corners_pc_m << node_corners[i].x() << " "
+//                            << node_corners[i].y() << " "
+//                            << node_corners[i].z() << " "
+//                            << 0.5f << " 0 0" << std::endl;
+//    }
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m     << " " << nodes_corners_count_pc_m + 1
+//                  << " "  << nodes_corners_count_pc_m + 3 << " " << nodes_corners_count_pc_m + 2 << std::endl;
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m + 1 << " " << nodes_corners_count_pc_m + 5
+//                  << " "  << nodes_corners_count_pc_m + 7 << " " << nodes_corners_count_pc_m + 3 << std::endl;
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m + 5 << " " << nodes_corners_count_pc_m + 7
+//                  << " "  << nodes_corners_count_pc_m + 6 << " " << nodes_corners_count_pc_m + 4 << std::endl;
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m     << " " << nodes_corners_count_pc_m + 2
+//                  << " "  << nodes_corners_count_pc_m + 6 << " " << nodes_corners_count_pc_m + 4 << std::endl;
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m     << " " << nodes_corners_count_pc_m + 1
+//                  << " "  << nodes_corners_count_pc_m + 5 << " " << nodes_corners_count_pc_m + 4 << std::endl;
+//
+//    ss_faces_pc_m << "4 " << nodes_corners_count_pc_m + 2 << " " << nodes_corners_count_pc_m + 3
+//                  << " "  << nodes_corners_count_pc_m + 7 << " " << nodes_corners_count_pc_m + 6 << std::endl;
+//
+//    nodes_corners_count_pc_m += 8;
+//    faces_count_pc_m  += 6;
+//  }
+//
+//  file_pc_m << "ply" << std::endl;
+//  file_pc_m << "format ascii 1.0" << std::endl;
+//  file_pc_m << "comment octree structure" << std::endl;
+//  file_pc_m << "element vertex " << nodes_corners_count_pc_m <<  std::endl;
+//  file_pc_m << "property float x" << std::endl;
+//  file_pc_m << "property float y" << std::endl;
+//  file_pc_m << "property float z" << std::endl;
+//  file_pc_m << "property uchar red"   << std::endl;
+//  file_pc_m << "property uchar green" << std::endl;
+//  file_pc_m << "property uchar blue"  << std::endl;
+//  file_pc_m << "element face " << faces_count_pc_m << std::endl;
+//  file_pc_m << "property list uchar int vertex_index" << std::endl;
+//  file_pc_m << "end_header" << std::endl;
+//  file_pc_m << ss_nodes_corners_pc_m.str();
+//  file_pc_m << ss_faces_pc_m.str();
+//
+//  file_pc_m.close();
+//
+//  std::cout << "FINISHED SAVING POINTCLOUD MESH - METER | obs_pc_m_counter = " << obs.size() << std::endl;
+//
+//  /// ----------
+//
+//  std::cout << "START SAVING POINTCLOUD MESH - VOXEL" << std::endl;
+//
+//  // Open the file for writing.
+//  std::ofstream file_pc_v (filename + "-pointcloud-mesh-voxel.ply");
+//  if (!file_pc_v.is_open()) {
+//    std::cerr << "Unable to write file" << "\n";
+//    return;
+//  }
+//
+//  std::stringstream ss_nodes_corners_pc_v;
+//  std::stringstream ss_faces_pc_v;
+//  int nodes_corners_count_pc_v = 0;
+//  int faces_count_pc_v  = 0;
+//
+//  for (const auto ob : obs) {
+//    // Create octant
+//    const Vecf<3> nc = map_util->floatToFloat(ob);
+//    const Eigen::Vector3f node_centre(nc.x(), nc.y(), nc.z());
+//    const float node_size = 1.0f;
+//
+//    Eigen::Vector3f node_corners[8];
+//    node_corners[0] = node_centre + Eigen::Vector3f(-node_size / 2, -node_size / 2, -node_size / 2);
+//    node_corners[1] = node_centre + Eigen::Vector3f( node_size / 2, -node_size / 2, -node_size / 2);
+//    node_corners[2] = node_centre + Eigen::Vector3f(-node_size / 2,  node_size / 2, -node_size / 2);
+//    node_corners[3] = node_centre + Eigen::Vector3f( node_size / 2,  node_size / 2, -node_size / 2);
+//    node_corners[4] = node_centre + Eigen::Vector3f(-node_size / 2, -node_size / 2,  node_size / 2);
+//    node_corners[5] = node_centre + Eigen::Vector3f( node_size / 2, -node_size / 2,  node_size / 2);
+//    node_corners[6] = node_centre + Eigen::Vector3f(-node_size / 2,  node_size / 2,  node_size / 2);
+//    node_corners[7] = node_centre + Eigen::Vector3f( node_size / 2,  node_size / 2,  node_size / 2);
+//
+//    for(int i = 0; i < 8; ++i) {
+//      ss_nodes_corners_pc_v << node_corners[i].x() << " "
+//                            << node_corners[i].y() << " "
+//                            << node_corners[i].z() << " "
+//                            << 0.5f << " 0 0" << std::endl;
+//    }
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v     << " " << nodes_corners_count_pc_v + 1
+//                  << " "  << nodes_corners_count_pc_v + 3 << " " << nodes_corners_count_pc_v + 2 << std::endl;
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v + 1 << " " << nodes_corners_count_pc_v + 5
+//                  << " "  << nodes_corners_count_pc_v + 7 << " " << nodes_corners_count_pc_v + 3 << std::endl;
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v + 5 << " " << nodes_corners_count_pc_v + 7
+//                  << " "  << nodes_corners_count_pc_v + 6 << " " << nodes_corners_count_pc_v + 4 << std::endl;
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v     << " " << nodes_corners_count_pc_v + 2
+//                  << " "  << nodes_corners_count_pc_v + 6 << " " << nodes_corners_count_pc_v + 4 << std::endl;
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v     << " " << nodes_corners_count_pc_v + 1
+//                  << " "  << nodes_corners_count_pc_v + 5 << " " << nodes_corners_count_pc_v + 4 << std::endl;
+//
+//    ss_faces_pc_v << "4 " << nodes_corners_count_pc_v + 2 << " " << nodes_corners_count_pc_v + 3
+//                  << " "  << nodes_corners_count_pc_v + 7 << " " << nodes_corners_count_pc_v + 6 << std::endl;
+//
+//    nodes_corners_count_pc_v += 8;
+//    faces_count_pc_v  += 6;
+//  }
+//
+//  file_pc_v << "ply" << std::endl;
+//  file_pc_v << "format ascii 1.0" << std::endl;
+//  file_pc_v << "comment octree structure" << std::endl;
+//  file_pc_v << "element vertex " << nodes_corners_count_pc_v <<  std::endl;
+//  file_pc_v << "property float x" << std::endl;
+//  file_pc_v << "property float y" << std::endl;
+//  file_pc_v << "property float z" << std::endl;
+//  file_pc_v << "property uchar red"   << std::endl;
+//  file_pc_v << "property uchar green" << std::endl;
+//  file_pc_v << "property uchar blue"  << std::endl;
+//  file_pc_v << "element face " << faces_count_pc_v << std::endl;
+//  file_pc_v << "property list uchar int vertex_index" << std::endl;
+//  file_pc_v << "end_header" << std::endl;
+//  file_pc_v << ss_nodes_corners_pc_v.str();
+//  file_pc_v << ss_faces_pc_v.str();
+//
+//  file_pc_v.close();
+//
+//  std::cout << "FINISHED SAVING POINTCLOUD MESH - METER | obs_pc_v_counter = " << obs.size() << std::endl;
+//
+//  /// ----------
+
+  std::cout << "START SAVING GRID MAP" << std::endl;
 
   // Open the file for writing.
-  std::ofstream file (filename + ".ply");
-  if (!file.is_open()) {
+  std::ofstream map_file (filename + "-map.txt");
+  if (!map_file.is_open()) {
     std::cerr << "Unable to write file" << "\n";
     return;
   }
 
-  std::stringstream ss_nodes_corners;
-  std::stringstream ss_faces;
-  int nodes_corners_count = 0;
-  int faces_count  = 0;
 
-  float g_max = 0.f;
-  size_t counter(0);
-  std::cout << "START SAVING MESH" << std::endl;
-  int x_min = std::numeric_limits<int>::max();
-  int y_min = std::numeric_limits<int>::max();
-  int z_min = std::numeric_limits<int>::max();
-
-  for (int x = 0; x < int(xDim_); x++) {
-    for (int y = 0; y < yDim_; y++) {
-      for (int z = 0; z < zDim_; z++) {
-        counter++;
-        if (isOccupied(x, y, z)) {
-          // Create octant
-          const Eigen::Vector3i node_coord(x, y, z);
-          const int node_size = 1;
-
-          if (x < x_min) {
-            x_min = x;
-          }
-
-          if (y < y_min) {
-            y_min = y;
-          }
-
-          if (z < z_min) {
-            z_min = z;
-          }
-
-          Eigen::Vector3f node_corners[8];
-          node_corners[0] =  node_coord.cast<float>();
-          node_corners[1] = (node_coord + Eigen::Vector3i(node_size, 0, 0)).cast<float>();
-          node_corners[2] = (node_coord + Eigen::Vector3i(0, node_size, 0)).cast<float>();
-          node_corners[3] = (node_coord + Eigen::Vector3i(node_size, node_size, 0)).cast<float>();
-          node_corners[4] = (node_coord + Eigen::Vector3i(0, 0, node_size)).cast<float>();
-          node_corners[5] = (node_coord + Eigen::Vector3i(node_size, 0, node_size)).cast<float>();
-          node_corners[6] = (node_coord + Eigen::Vector3i(0, node_size, node_size)).cast<float>();
-          node_corners[7] = (node_coord + Eigen::Vector3i(node_size, node_size, node_size)).cast<float>();
-
-          for(int i = 0; i < 8; ++i) {
-            ss_nodes_corners << node_corners[i].x() << " "
-                             << node_corners[i].y() << " "
-                             << node_corners[i].z() << " "
-                             << 0.5f << " 0 0" << std::endl;
-          }
-
-          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
-                   << " "  << nodes_corners_count + 3 << " " << nodes_corners_count + 2 << std::endl;
-
-          ss_faces << "4 " << nodes_corners_count + 1 << " " << nodes_corners_count + 5
-                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 3 << std::endl;
-
-          ss_faces << "4 " << nodes_corners_count + 5 << " " << nodes_corners_count + 7
-                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
-
-          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 2
-                   << " "  << nodes_corners_count + 6 << " " << nodes_corners_count + 4 << std::endl;
-
-          ss_faces << "4 " << nodes_corners_count     << " " << nodes_corners_count + 1
-                   << " "  << nodes_corners_count + 5 << " " << nodes_corners_count + 4 << std::endl;
-
-          ss_faces << "4 " << nodes_corners_count + 2 << " " << nodes_corners_count + 3
-                   << " "  << nodes_corners_count + 7 << " " << nodes_corners_count + 6 << std::endl;
-
-          nodes_corners_count += 8;
-          faces_count  += 6;
-        }
-      }
-    }
-  }
-  std::cout << "FINISHED SAVING MESH - " << counter << std::endl;
-
-  file << "ply" << std::endl;
-  file << "format ascii 1.0" << std::endl;
-  file << "comment octree structure" << std::endl;
-  file << "element vertex " << nodes_corners_count <<  std::endl;
-  file << "property float x" << std::endl;
-  file << "property float y" << std::endl;
-  file << "property float z" << std::endl;
-  file << "property uchar red"   << std::endl;
-  file << "property uchar green" << std::endl;
-  file << "property uchar blue"  << std::endl;
-  file << "element face " << faces_count << std::endl;
-  file << "property list uchar int vertex_index" << std::endl;
-  file << "end_header" << std::endl;
-  file << ss_nodes_corners.str();
-  file << ss_faces.str();
-
-  file.close();
-
-  std::cout << "x min = " << x_min << "/ " << xDim_ << std::endl;
-  std::cout << "y min = " << y_min << "/ " << yDim_ << std::endl;
-  std::cout << "z min = " << z_min << "/ " << zDim_ << std::endl;
-
-  // Open the file for writing.
-  std::ofstream point_cloud_file (filename + ".txt");
-  if (!point_cloud_file.is_open()) {
-    std::cerr << "Unable to write file" << "\n";
-    return;
-  }
-
-
-  std::stringstream ss_nodes_centres;;
-  std::cout << "START SAVING MAP" << std::endl;
+  std::stringstream ss_nodes_coords;;
 
   for (int x = 0; x < xDim_; x++) {
     for (int y = 0; y < yDim_; y++) {
       for (int z = 0; z < zDim_; z++) {
         if (isOccupied(x, y, z)) {
           // Create octant
-          const Eigen::Vector3f node_centre = Eigen::Vector3f(x, y, z);
+          const Eigen::Vector3f node_coord = Eigen::Vector3f(x, y, z);
 
-          ss_nodes_centres << node_centre.x() << " "
-                           << node_centre.y() << " "
-                           << node_centre.z() << std::endl;
+          ss_nodes_coords << node_coord.x() << " "
+                          << node_coord.y() << " "
+                          << node_coord.z() << std::endl;
         }
       }
     }
   }
-  std::cout << "FINISHED SAVING MAP" << std::endl;
 
-  point_cloud_file << ss_nodes_centres.str();
+  map_file << ss_nodes_coords.str();
 
-  point_cloud_file.close();
+  map_file.close();
+
+  std::cout << "FINISHED SAVING GRID MAP" << std::endl;
+
+  /// ----------
+
+  std::cout << "START SAVING OBSTACLES" << std::endl;
+
+  // Open the file for writing.
+  std::ofstream obs_file (filename + "-obs.txt");
+  if (!obs_file.is_open()) {
+    std::cerr << "Unable to write file" << "\n";
+    return;
+  }
+
+
+  std::stringstream ss_obs_coords;;
+
+  for (const auto ob : obs) {
+    // Create octant
+    const Vecf<3>   oc = map_util->floatToFloat(ob);
+    const Eigen::Vector3f obs_coord(oc.x(), oc.y(), oc.z());
+
+    ss_obs_coords << obs_coord.x() << " "
+                  << obs_coord.y() << " "
+                  << obs_coord.z() << std::endl;
+  }
+  std::cout << "FINISHED SAVING OBSTACLES  | obs_counter = " << obs.size() << std::endl;
+
+  obs_file << ss_obs_coords.str();
+
+  obs_file.close();
 
   return;
 

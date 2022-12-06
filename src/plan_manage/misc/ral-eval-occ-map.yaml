@@ -5,9 +5,9 @@ PolyhedronBox:              [4.0, 4.0, 2.5]
 Rho:                        1000.0
 TotalT:                     0.0
 QdIntervals:                48
-HorizHalfLen:               0.65
-VertHalfLen:                0.2
-SafeMargin:                 0.08
+HorizHalfLen:               0.64
+VertHalfLen:                0.24
+SafeMargin:                 0.14
 VelMax:                     14.0
 ThrustAccMin:               5.0
 ThrustAccMax:               12.0

@@ -171,6 +171,10 @@ namespace JPS {
         nh.param("map/y_origin", origin_d_[1], -map_size(1) / 2);
         nh.param("map/z_origin", origin_d_[2], -map_size(2) / 2);
 
+//        origin_d_[0] = -map_size(0)/2;
+//        origin_d_[1] = -10.0;
+//        origin_d_[2] = 0;
+
         nh.param("use_esdf",use_esdf,false);
         nh.param("world_frame_id",world_frame_id,std::string("/world_enu"));
 
@@ -553,7 +557,8 @@ namespace JPS {
       Veci<Dim> floatToInt(const Vecf<Dim> &pt) {
         Veci<Dim> pn;
         for(int i = 0; i < Dim; i++) {
-          pn(i) = (pt(i) + (res_ / 10) - origin_d_(i)) / res_;
+//          pn(i) = (pt(i) + (res_ / 10) - origin_d_(i)) / res_;
+          pn(i) = (pt(i) - origin_d_(i)) / res_;
         }
         return pn;
       }

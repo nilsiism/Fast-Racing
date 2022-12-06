@@ -165,7 +165,7 @@ namespace JPS
        */
       GraphSearch(const char* cMap, int xDim, int yDim, int zDim, double eps = 1, bool verbose = false);
 
-      void saveMap(const std::string filename) const;
+      void saveMap(const std::string filename, const std::shared_ptr<JPS::MapUtil<3>> map_util, const vec_Vecf<3>& obs) const;
 
       /**
        * @brief start 2D planning thread

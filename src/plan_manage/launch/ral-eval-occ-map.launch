@@ -37,7 +37,7 @@
     <param name="map/x_origin"     value="-16"          type="double"/>
     <param name="map/y_origin"     value="-4"         type="double"/>
     <param name="map/z_origin"     value="-1"         type="double"/>
-    <param name="map/file"         value="/home/nils/workspace_/projects_/supereight-2-srl/test/planner/forest-env-gap-000"   type="string"/>
+    <param name="map/file"         value="/home/nils/Documents/RALAirSimEnvironments/RandomGate/random-gate-3d-opti-009"   type="string"/>
     <param name="use_esdf"         value="false"       type="bool"/>
     <param name="world_frame_id"   value="world_enu"   type="string"/>
   </node>

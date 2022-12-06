@@ -11,7 +11,7 @@ PolyhedronBox:              [4.0, 4.0, 2.5]
 Rho:                        1000.0
 TotalT:                     0.0
 QdIntervals:                48 
-HorizHalfLen:               0.5
+HorizHalfLen:               0.50
 VertHalfLen:                0.15
 SafeMargin:                 0.08
 VelMax:                     14.0

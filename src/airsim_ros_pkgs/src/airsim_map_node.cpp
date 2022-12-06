@@ -407,69 +407,63 @@ int main(int argc, char ** argv)
             }
           }
 
-//          for(int i =0;i<objects_list.size();i++){
-//              msr::airlib::Pose cube_pose;
-//              msr::airlib::Vector3r cube_scale_airsim;
-//              string object_name;
-//              object_name = objects_list[i];
-//              cube_pose = airsim_client_map_.simGetObjectPose(object_name);
-//              cube_scale_airsim = airsim_client_map_.simGetObjectScale(object_name);
-//              const Eigen::Vector3d cube_scale(cube_scale_airsim.x(), cube_scale_airsim.y(), cube_scale_airsim.z());
-//              Eigen::Vector3d position;
-//              Eigen::Quaterniond q;
-//              Eigen::Matrix3d body2world;
-//              q.w() = cube_pose.orientation.w();
-//              q.x() = cube_pose.orientation.x();
-//              q.y() = cube_pose.orientation.y();
-//              q.z() = cube_pose.orientation.z();
-//
-//              if(world_frameid==std::string("/world_enu")){
-//                  position<<cube_pose.position.y(),cube_pose.position.x(),-cube_pose.position.z();
-//                  body2world = enutoned*q.toRotationMatrix();
-//              }
-//              else if(world_frameid==std::string("/world_ned")) {
-//                  position << cube_pose.position.x(),cube_pose.position.y(),cube_pose.position.z();
-//                  body2world = q.toRotationMatrix();
-//              }
-//              else{
-//                ROS_ERROR("wrong map frame id!");
-//              }
-//
-//              std::cout << "object_name = " << object_name << std::endl;
-//              std::cout << "position    = " << position.x() << ", " << position.y() << ", " << position.z() << std::endl;
-//              std::cout << "q           = " << q.w() << ", " << q.x() << ", " << q.y() << ", " << q.z() << std::endl;
-//              std::cout << "cube_scale  = " << cube_scale.x() << "," << cube_scale.y() << ", " << cube_scale.z() << std::endl;
-//              std::cout << "body2world  = " << body2world << std::endl;
-//
-//
-//
-//
-//              if(count==0)
-//                ROS_INFO("We are sending global map~ Please wait~");
-//              double lx,ly,lz;
-//              for(lx = -cube_scale.x()/2; lx<cube_scale.x()/2+resolution;lx+=resolution / 2) {
-//                  for(ly = -cube_scale.y()/2; ly<cube_scale.y()/2+resolution;ly+=resolution / 2) {
-//                      for(lz = -cube_scale.z()/2; lz<cube_scale.z()/2+resolution;lz+=resolution / 2) {
-//                          Eigen::Vector3d obs_body;
-//                          obs_body << lx,ly,lz;
-//                          Eigen::Vector3d obs_world;
-//                          obs_world = body2world*obs_body+position;
-//                          pcl::PointXYZ pt;
-//                          pt.x = obs_world[0];
-//                          pt.y = obs_world[1];
-//                          pt.z = obs_world[2];
-//                          cloudMap.points.push_back(pt);
-//                          points.push_back(Eigen::Vector3f(pt.x, pt.y, pt.z));
-//                          geometry_msgs::Point32 cpt;
-//                          cpt.x = pt.x;
-//                          cpt.y = pt.y;
-//                          cpt.z = pt.z;
-//                          if(use_octree)
-//                            server_drone->m_octree->updateNode(point3d(pt.x+1e-5,pt.y+1e-5,pt.z+1e-5), true);
-//                      }
-//                  }
-//              }
-//          }
+
+
+//            // Z... Test
+//            objects_list = airsim_client_map_.simListSceneObjects("Cube.*");
+//            for(int i =0;i<objects_list.size();i++){
+//                msr::airlib::Pose cube_pose;
+//                msr::airlib::Vector3r cube_scale;
+//                string object_name;
+//                object_name = objects_list[i];
+//                cube_pose = airsim_client_map_.simGetObjectPose(object_name);
+//                cube_scale = airsim_client_map_.simGetObjectScale(object_name);
+//                Eigen::Vector3d position;
+//                Eigen::Quaterniond q;
+//                Eigen::Matrix3d body2world;
+//                q.w() = cube_pose.orientation.w();
+//                q.x() = cube_pose.orientation.x();
+//                q.y() = cube_pose.orientation.y();
+//                q.z() = cube_pose.orientation.z();
+//                if(world_frameid==std::string("/world_enu")){
+//                    position<<cube_pose.position.y(),cube_pose.position.x(),-cube_pose.position.z();
+//                    body2world = enutoned*q.toRotationMatrix();
+//                }
+//                else if(world_frameid==std::string("/world_ned")) {
+//                    position << cube_pose.position.x(),cube_pose.position.y(),cube_pose.position.z();
+//                    body2world = q.toRotationMatrix();
+//                }
+//                else{
+//                    ROS_ERROR("wrong map frame id!");
+//                }
+//                if(count==0)
+//                    ROS_INFO("We are sending global map~ Please wait~");
+//                double lx,ly,lz;
+//                for(lx = -cube_scale.x()/2; lx<cube_scale.x()/2+resolution;lx+=resolution){
+//                    for(ly = -cube_scale.y()/2; ly<cube_scale.y()/2+resolution;ly+=resolution){
+//                        for(lz = -cube_scale.z()/2; lz<cube_scale.z()/2+resolution;lz+=resolution){
+//                            Eigen::Vector3d obs_body;
+//                            obs_body << lx,ly,lz;
+//                            Eigen::Vector3d obs_world;
+//                            obs_world = body2world*obs_body + position;
+//                            pcl::PointXYZ pt;
+//                            pt.x = obs_world[0];
+//                            pt.y = obs_world[1];
+//                            pt.z = obs_world[2];
+//                            cloudMap.points.push_back(pt);
+//                            geometry_msgs::Point32 cpt;
+//                            cpt.x = pt.x;
+//                            cpt.y = pt.y;
+//                            cpt.z = pt.z;
+//                            if(use_octree)
+//                                server_drone->m_octree->updateNode(point3d(pt.x+1e-5,pt.y+1e-5,pt.z+1e-5), true);
+//                        }
+//                    }
+//                }
+//            }
+
+
+
           if(use_octree)
             server_drone->publishAll();
           count++;
